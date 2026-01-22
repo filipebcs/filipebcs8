@@ -10,7 +10,7 @@ const navigation = [
   { name: "Experience", href: "#experience" },
   { name: "Skills", href: "#skills" },
   { name: "Education", href: "#education" },
-  { name: "Blog", href: "/blog" },
+  { name: "Blog", href: "/blog/" },
 ]
 
 export function Header() {
@@ -40,7 +40,7 @@ export function Header() {
         </div>
 
         <div className="hidden lg:flex lg:items-center lg:gap-4">
-          <Link href="/blog">
+          <Link href="/blog/">
             <Button variant="outline" size="sm" className="border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground bg-transparent">
               Read Blog
             </Button>
@@ -74,7 +74,7 @@ export function Header() {
               </Link>
             ))}
             <div className="pt-4">
-              <Link href="/blog">
+              <Link href="/blog/">
                 <Button variant="outline" size="sm" className="w-full border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground bg-transparent">
                   Read Blog
                 </Button>

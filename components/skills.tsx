@@ -1,7 +1,10 @@
+"use client"
+
 import Image from "next/image"
 import { Award, Code, Globe, Shield, Server, Terminal } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { withBasePath } from "@/lib/utils/base-path"
 
 const skillCategories = [
   {
@@ -120,7 +123,7 @@ export function Skills() {
                 {cert.badge ? (
                   <div className="relative h-24 w-24 flex items-center justify-center">
                     <Image
-                      src={cert.badge || "/placeholder.svg"}
+                      src={withBasePath(cert.badge) || "/placeholder.svg"}
                       alt={`${cert.name} certification badge`}
                       width={96}
                       height={96}

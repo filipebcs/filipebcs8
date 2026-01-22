@@ -1,10 +1,12 @@
+"use client"
+
 import Link from "next/link"
 import { ArrowLeft, Calendar, Clock, ArrowRight } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
+import useSWR from "swr"
+import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 interface Post {
@@ -17,8 +19,8 @@ interface Post {
   created_at: string
 }
 
-async function getPosts(): Promise<Post[]> {
-  const supabase = await createClient()
+const fetcher = async (): Promise<Post[]> => {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from("posts")
     .select("id, title, slug, excerpt, cover_image, published, created_at")
@@ -48,8 +50,8 @@ function estimateReadTime(excerpt: string | null) {
   return `${minutes} min read`
 }
 
-export default async function BlogPage() {
-  const posts = await getPosts()
+export default function BlogPage() {
+  const { data: posts, isLoading, error } = useSWR("posts", fetcher)
 
   return (
     <main className="min-h-screen">
@@ -73,11 +75,44 @@ export default async function BlogPage() {
             </p>
           </div>
 
+          {/* Loading State */}
+          {isLoading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="h-full bg-card border-border animate-pulse">
+                  <div className="aspect-video bg-secondary rounded-t-lg" />
+                  <CardHeader>
+                    <div className="h-4 w-24 bg-secondary rounded mb-2" />
+                    <div className="h-6 w-full bg-secondary rounded" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-4 w-full bg-secondary rounded mb-2" />
+                    <div className="h-4 w-2/3 bg-secondary rounded" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="text-center py-16">
+              <p className="text-destructive mb-4">Failed to load posts. Please try again later.</p>
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.reload()}
+                className="border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+
           {/* Posts Grid */}
-          {posts.length > 0 ? (
+          {!isLoading && !error && posts && posts.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post) => (
-                <Link key={post.id} href={`/blog/${post.slug}`}>
+                <Link key={post.id} href={`/blog/${post.slug}/`}>
                   <Card className="h-full bg-card border-border hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5 group">
                     {post.cover_image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
@@ -118,7 +153,10 @@ export default async function BlogPage() {
                 </Link>
               ))}
             </div>
-          ) : (
+          )}
+
+          {/* Empty State */}
+          {!isLoading && !error && posts && posts.length === 0 && (
             <div className="text-center py-16">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-6">
                 <Clock className="h-8 w-8 text-muted-foreground" />

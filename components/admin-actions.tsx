@@ -17,7 +17,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-export function DeletePostButton({ postId, postTitle }: { postId: string; postTitle: string }) {
+export function DeletePostButton({ 
+  postId, 
+  postTitle,
+  onDelete 
+}: { 
+  postId: string
+  postTitle: string
+  onDelete?: () => void 
+}) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -30,6 +38,9 @@ export function DeletePostButton({ postId, postTitle }: { postId: string; postTi
       console.error("Error deleting post:", error)
       setLoading(false)
     } else {
+      if (onDelete) {
+        onDelete()
+      }
       router.refresh()
     }
   }

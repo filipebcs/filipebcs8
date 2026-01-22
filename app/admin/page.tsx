@@ -1,11 +1,16 @@
-import { redirect } from "next/navigation"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Plus, Edit, Trash2, Eye, EyeOff, LogOut, ArrowLeft } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
+import { Plus, Edit, Trash2, Eye, EyeOff, ArrowLeft, AlertTriangle } from "lucide-react"
+import useSWR from "swr"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DeletePostButton, LogoutButton } from "@/components/admin-actions"
+import type { User } from "@supabase/supabase-js"
 
 interface Post {
   id: string
@@ -17,8 +22,8 @@ interface Post {
   updated_at: string
 }
 
-async function getPosts(): Promise<Post[]> {
-  const supabase = await createClient()
+const fetcher = async (): Promise<Post[]> => {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from("posts")
     .select("id, title, slug, excerpt, published, created_at, updated_at")
@@ -40,19 +45,59 @@ function formatDate(dateString: string) {
   })
 }
 
-export default async function AdminPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export default function AdminPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const { data: posts, isLoading: postsLoading, mutate } = useSWR("admin-posts", fetcher)
 
-  if (!user) {
-    redirect("/auth/login")
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        router.push("/auth/login/")
+        return
+      }
+      
+      setUser(user)
+      setLoading(false)
+    }
+    
+    checkUser()
+  }, [router])
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </main>
+    )
   }
 
-  const posts = await getPosts()
+  if (!user) {
+    return null
+  }
+
+  const isStaticExport = typeof window !== "undefined" && window.location.hostname.includes("github.io")
 
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+        {/* Static Export Warning */}
+        {isStaticExport && (
+          <div className="mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/50 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-yellow-500">Limited Functionality</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Admin features are limited on GitHub Pages. For full functionality, deploy to Vercel or another platform that supports server-side rendering.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
@@ -67,7 +112,7 @@ export default async function AdminPage() {
             <p className="text-muted-foreground mt-1">Manage your blog posts</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/admin/posts/new">
+            <Link href="/admin/posts/new/">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="h-4 w-4 mr-2" />
                 New Post
@@ -82,14 +127,14 @@ export default async function AdminPage() {
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
               <CardDescription>Total Posts</CardDescription>
-              <CardTitle className="text-3xl">{posts.length}</CardTitle>
+              <CardTitle className="text-3xl">{posts?.length || 0}</CardTitle>
             </CardHeader>
           </Card>
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
               <CardDescription>Published</CardDescription>
               <CardTitle className="text-3xl text-primary">
-                {posts.filter((p) => p.published).length}
+                {posts?.filter((p) => p.published).length || 0}
               </CardTitle>
             </CardHeader>
           </Card>
@@ -97,7 +142,7 @@ export default async function AdminPage() {
             <CardHeader className="pb-2">
               <CardDescription>Drafts</CardDescription>
               <CardTitle className="text-3xl text-muted-foreground">
-                {posts.filter((p) => !p.published).length}
+                {posts?.filter((p) => !p.published).length || 0}
               </CardTitle>
             </CardHeader>
           </Card>
@@ -112,7 +157,19 @@ export default async function AdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {posts.length > 0 ? (
+            {postsLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse flex items-center gap-4 py-4">
+                    <div className="flex-1">
+                      <div className="h-5 w-1/2 bg-secondary rounded mb-2" />
+                      <div className="h-4 w-1/3 bg-secondary rounded" />
+                    </div>
+                    <div className="h-8 w-20 bg-secondary rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : posts && posts.length > 0 ? (
               <div className="divide-y divide-border">
                 {posts.map((post) => (
                   <div
@@ -152,20 +209,20 @@ export default async function AdminPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {post.published && (
-                        <Link href={`/blog/${post.slug}`} target="_blank">
+                        <Link href={`/blog/${post.slug}/`} target="_blank">
                           <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                             <Eye className="h-4 w-4" />
                             <span className="sr-only">View</span>
                           </Button>
                         </Link>
                       )}
-                      <Link href={`/admin/posts/${post.id}`}>
+                      <Link href={`/admin/posts/${post.id}/`}>
                         <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                           <Edit className="h-4 w-4" />
                           <span className="sr-only">Edit</span>
                         </Button>
                       </Link>
-                      <DeletePostButton postId={post.id} postTitle={post.title} />
+                      <DeletePostButton postId={post.id} postTitle={post.title} onDelete={() => mutate()} />
                     </div>
                   </div>
                 ))}
@@ -173,7 +230,7 @@ export default async function AdminPage() {
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground mb-4">No posts yet</p>
-                <Link href="/admin/posts/new">
+                <Link href="/admin/posts/new/">
                   <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
                     Create Your First Post
