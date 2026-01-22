@@ -4,7 +4,6 @@ import Image from "next/image"
 import { Award, Code, Globe, Shield, Server, Terminal } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { withBasePath } from "@/lib/utils/base-path"
 
 const skillCategories = [
   {
@@ -70,12 +69,12 @@ const certifications = [
   { 
     name: "OSCP+", 
     full: "OffSec Certified Professional Plus",
-    badge: "/public/images/oscp-plus-badge.png"
+    badge: "/images/oscp-plus-badge.png"
   },
   { 
     name: "OSCP", 
     full: "OffSec Certified Professional",
-    badge: "/public/images/oscp-badge.png"
+    badge: "/images/oscp-badge.png"
   },
   { 
     name: "CEH", 
@@ -85,17 +84,17 @@ const certifications = [
   { 
     name: "ITILv4", 
     full: "ITIL Foundation v4",
-    badge: "/public/images/itil-badge.png"
+    badge: "/images/itil-badge.png"
   },
   { 
     name: "CISEF", 
     full: "Cyber & IT Security Foundation",
-    badge: "/public/images/cisef-badge.png"
+    badge: "/images/cisef-badge.png"
   },
   { 
     name: "CCNP", 
     full: "Cisco Certified Network Professional",
-    badge: "/public/images/ccnp-badge.png"
+    badge: "/images/ccnp-badge.png"
   },
 ]
 
@@ -123,7 +122,7 @@ export function Skills() {
                 {cert.badge ? (
                   <div className="relative h-24 w-24 flex items-center justify-center">
                     <Image
-                      src={withBasePath(cert.badge) || "/placeholder.svg"}
+                      src={cert.badge || "/placeholder.svg"}
                       alt={`${cert.name} certification badge`}
                       width={96}
                       height={96}
