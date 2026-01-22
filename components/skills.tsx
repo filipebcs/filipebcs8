@@ -70,12 +70,12 @@ const certifications = [
   { 
     name: "OSCP+", 
     full: "OffSec Certified Professional Plus",
-    badge: "/images/oscp-plus-badge.png"
+    badge: "/public/images/oscp-plus-badge.png"
   },
   { 
     name: "OSCP", 
     full: "OffSec Certified Professional",
-    badge: "/images/oscp-badge.png"
+    badge: "/public/images/oscp-badge.png"
   },
   { 
     name: "CEH", 
@@ -85,17 +85,17 @@ const certifications = [
   { 
     name: "ITILv4", 
     full: "ITIL Foundation v4",
-    badge: "/images/itil-badge.png"
+    badge: "/public/images/itil-badge.png"
   },
   { 
     name: "CISEF", 
     full: "Cyber & IT Security Foundation",
-    badge: "/images/cisef-badge.png"
+    badge: "/public/images/cisef-badge.png"
   },
   { 
     name: "CCNP", 
     full: "Cisco Certified Network Professional",
-    badge: "/images/ccnp-badge.png"
+    badge: "/public/images/ccnp-badge.png"
   },
 ]
 
