@@ -79,7 +79,7 @@ const certifications = [
   { 
     name: "CEH", 
     full: "Certified Ethical Hacker",
-    badge: null
+    badge: "/images/ceh-badge.png"
   },
   { 
     name: "ITILv4", 
