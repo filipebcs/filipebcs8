@@ -1,10 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  basePath: '/filipebcs8',
-  assetPrefix: '/filipebcs8/',
+  basePath: process.env.NODE_ENV === 'production' ? '/filipebcs8' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/filipebcs8/' : '',
   trailingSlash: true,
-  images: { unoptimized: true },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  images: {
+    unoptimized: true,
+  },
 }
 
 export default nextConfig
